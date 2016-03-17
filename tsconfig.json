@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "out": "build/rapid.js",
+        "sourceMap": true
+    }
+}

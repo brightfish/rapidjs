@@ -1,0 +1,3 @@
+interface IPromiseFactory {
+    Defer(): ITask;
+}
