@@ -119,11 +119,11 @@ describe('Tracker', function() {
         var input = {
             String: 'One'
         };
-        
+
         tracker.Track(input);
-        
+
         expect(function() {
-            input.String = 2;    
+            input.String = 2;
         }).toThrow();
     });
 
@@ -147,22 +147,31 @@ describe('Tracker', function() {
     });
 
     it('should track value changes in arrays', function() {
-        //var input = [
-        //    'One',
-        //    1,
-        //    new Date()
-        //];
+        var input = [
+            'One',
+            1,
+            new Date()
+        ];
 
-        //tracker.Track(input);
-
-        //input[0] = 'Two';
-
-        //var changes = tracker.GetChanges(input);
-
-        //expect(changes.length).toBe(1)
+        tracker.Track(input);
+        
+        input[0] = 'Two';
+        
+        var changes = tracker.GetChanges(input);
+        expect(changes.Count).toEqual(1);
+        
     });
 
     it('should track object changes in arrays', function() {
-
+        var input = [ 
+            { String: 'One' }
+        ];
+        
+        tracker.Track(input);
+        
+        input[0].String = 'Two';
+        
+        var changes = tracker.GetChanges(input);
+        expect(changes.Count).toEqual(1);
     });
 });

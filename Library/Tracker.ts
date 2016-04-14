@@ -19,100 +19,80 @@ namespace Rapid {
 
         private RecursiveTrack(value: any) {
             var self = this;
-            if (Is.Object(value)) {
-                var tracked: boolean = false;
 
-                if (Is.Defined(value.__TrackingId__))
-                    tracked = self.tracks.Contains(value.__TrackingId__);
+            var tracked: boolean = false;
+            if (Is.Null(value))
+                return;
 
-                if (tracked)
-                    return;
+            if (Is.Defined(value.__TrackingId__))
+                tracked = self.tracks.Contains(value.__TrackingId__);
 
-                value.__TrackingId__ = ++self.counter;
+            if (tracked)
+                return;
 
-                self.tracks.Add(value.__TrackingId__, value);
+            value.__TrackingId__ = ++self.counter;
 
-                for (var k in value) {
-                    (function(key) {
-                        var property = value[key];
+            self.tracks.Add(value.__TrackingId__, value);
 
-                        if (key === '__TrackingId__')
-                            return;
+            for (var k in value) {
+                (function(key) {
+                    var property = value[key];
 
-                        Object.defineProperty(value, key, {
-                            get: function() { return property; },
-                            set: function(next) {
-                                var previous = this[key];
-                              
-                                if (!Is.Null(previous) && !Is.Null(next)) {
-                                    if (!Is.SameType(previous, next)) {
-                                        throw new Exception('Type switching is not allowed.')
-                                    }
+                    if (key === '__TrackingId__')
+                        return;
+
+                    Object.defineProperty(value, key, {
+                        get: function() { return property; },
+                        set: function(next) {
+                            var previous = this[key];
+
+                            if (!Is.Null(previous) && !Is.Null(next)) {
+                                if (!Is.SameType(previous, next)) {
+                                    throw new Exception('Type switching is not allowed.')
                                 }
+                            }
 
-                                var referenceChanges = self.changes.ToEnumerable()
-                                    .FirstOrDefault(new KeyValuePair<number, List<Change>>(),
-                                    (kvp: KeyValuePair<number, List<Change>>) => kvp.Key === this.__TrackingId__).Value;
+                            var referenceChanges = self.changes.ToEnumerable()
+                                .FirstOrDefault(new KeyValuePair<number, List<Change>>(),
+                                (kvp: KeyValuePair<number, List<Change>>) => kvp.Key === this.__TrackingId__).Value;
 
-                                if (Is.Null(referenceChanges)) {
-                                    referenceChanges = new List<Change>();
-                                    self.changes.Add(this.__TrackingId__, referenceChanges);
+                            if (Is.Null(referenceChanges)) {
+                                referenceChanges = new List<Change>();
+                                self.changes.Add(this.__TrackingId__, referenceChanges);
+                            }
+
+                            var change = referenceChanges.ToEnumerable().FirstOrDefault(null, (change) => change.Name === key);
+
+                            if (Is.Null(change)) {
+                                change = new Change();
+                                referenceChanges.Add(change);
+                            }
+
+                            change.Name = key;
+                            change.Previous = previous;
+                            change.Next = next;
+
+                            if (Is.ReferenceType(next)) {
+                                if (Is.Null(previous)) {
+                                    change.Type = ChangeTypes.Add;
                                 }
-
-                                var change = referenceChanges.ToEnumerable().FirstOrDefault(null, (change) => change.Name === key);
-
-                                if (Is.Null(change)) {
-                                    change = new Change();
-                                    referenceChanges.Add(change);
-                                }
-
-                                change.Name = key;
-                                change.Previous = previous;
-                                change.Next = next;
-
-                                if (Is.ReferenceType(next)) {
-                                    if (Is.Null(previous)) {
-                                        change.Type = ChangeTypes.Add;
-                                    }
-                                    else if (Is.Null(next)) {
-                                        change.Type = ChangeTypes.Delete;
-                                    }
-                                    else {
-                                        change.Type = ChangeTypes.Edit;
-                                    }
+                                else if (Is.Null(next)) {
+                                    change.Type = ChangeTypes.Delete;
                                 }
                                 else {
                                     change.Type = ChangeTypes.Edit;
                                 }
                             }
-                        });
-
-                        if (Is.ReferenceType(property)) {
-                            self.RecursiveTrack(property);
-                        }
-                    })(k);
-                }
-            }
-            else if (Is.Array(value)) {
-                //Todo: This is where you left off.
-                for (var index in value) {
-                    var property = value[index];
-
-                    if (Is.ReferenceType(property) && !Is.Date(property)) {
-                        this.RecursiveTrack(property);
-                    }
-                    else {
-                        var self = this;
-                        Object.defineProperty(value, index, {
-                            get: function() { return property; },
-                            set: function(next) {
-
-                                //var change = new Change(index, ChangeTypes.Edit, property, next);
-                                //self.changes.Add(property.__TrackingId__, change);
+                            else {
+                                change.Type = ChangeTypes.Edit;
                             }
-                        });
+                        }
+                    });
+
+                    if (Is.ReferenceType(property)) {
+                        self.RecursiveTrack(property);
                     }
-                }
+                })(k);
             }
         }
 

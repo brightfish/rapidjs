@@ -561,80 +561,64 @@ var Rapid;
         };
         Tracker.prototype.RecursiveTrack = function (value) {
             var self = this;
-            if (Rapid.Is.Object(value)) {
-                var tracked = false;
-                if (Rapid.Is.Defined(value.__TrackingId__))
-                    tracked = self.tracks.Contains(value.__TrackingId__);
-                if (tracked)
-                    return;
-                value.__TrackingId__ = ++self.counter;
-                self.tracks.Add(value.__TrackingId__, value);
-                for (var k in value) {
-                    (function (key) {
-                        var property = value[key];
-                        if (key === '__TrackingId__')
-                            return;
-                        Object.defineProperty(value, key, {
-                            get: function () { return property; },
-                            set: function (next) {
-                                var _this = this;
-                                var previous = this[key];
-                                if (!Rapid.Is.Null(previous) && !Rapid.Is.Null(next)) {
-                                    if (!Rapid.Is.SameType(previous, next)) {
-                                        throw new Rapid.Exception('Type switching is not allowed.');
-                                    }
+            var tracked = false;
+            if (Rapid.Is.Null(value))
+                return;
+            if (Rapid.Is.Defined(value.__TrackingId__))
+                tracked = self.tracks.Contains(value.__TrackingId__);
+            if (tracked)
+                return;
+            value.__TrackingId__ = ++self.counter;
+            self.tracks.Add(value.__TrackingId__, value);
+            for (var k in value) {
+                (function (key) {
+                    var property = value[key];
+                    if (key === '__TrackingId__')
+                        return;
+                    Object.defineProperty(value, key, {
+                        get: function () { return property; },
+                        set: function (next) {
+                            var _this = this;
+                            var previous = this[key];
+                            if (!Rapid.Is.Null(previous) && !Rapid.Is.Null(next)) {
+                                if (!Rapid.Is.SameType(previous, next)) {
+                                    throw new Rapid.Exception('Type switching is not allowed.');
                                 }
-                                var referenceChanges = self.changes.ToEnumerable()
-                                    .FirstOrDefault(new Rapid.KeyValuePair(), function (kvp) { return kvp.Key === _this.__TrackingId__; }).Value;
-                                if (Rapid.Is.Null(referenceChanges)) {
-                                    referenceChanges = new Rapid.List();
-                                    self.changes.Add(this.__TrackingId__, referenceChanges);
+                            }
+                            var referenceChanges = self.changes.ToEnumerable()
+                                .FirstOrDefault(new Rapid.KeyValuePair(), function (kvp) { return kvp.Key === _this.__TrackingId__; }).Value;
+                            if (Rapid.Is.Null(referenceChanges)) {
+                                referenceChanges = new Rapid.List();
+                                self.changes.Add(this.__TrackingId__, referenceChanges);
+                            }
+                            var change = referenceChanges.ToEnumerable().FirstOrDefault(null, function (change) { return change.Name === key; });
+                            if (Rapid.Is.Null(change)) {
+                                change = new Rapid.Change();
+                                referenceChanges.Add(change);
+                            }
+                            change.Name = key;
+                            change.Previous = previous;
+                            change.Next = next;
+                            if (Rapid.Is.ReferenceType(next)) {
+                                if (Rapid.Is.Null(previous)) {
+                                    change.Type = Rapid.ChangeTypes.Add;
                                 }
-                                var change = referenceChanges.ToEnumerable().FirstOrDefault(null, function (change) { return change.Name === key; });
-                                if (Rapid.Is.Null(change)) {
-                                    change = new Rapid.Change();
-                                    referenceChanges.Add(change);
-                                }
-                                change.Name = key;
-                                change.Previous = previous;
-                                change.Next = next;
-                                if (Rapid.Is.ReferenceType(next)) {
-                                    if (Rapid.Is.Null(previous)) {
-                                        change.Type = Rapid.ChangeTypes.Add;
-                                    }
-                                    else if (Rapid.Is.Null(next)) {
-                                        change.Type = Rapid.ChangeTypes.Delete;
-                                    }
-                                    else {
-                                        change.Type = Rapid.ChangeTypes.Edit;
-                                    }
+                                else if (Rapid.Is.Null(next)) {
+                                    change.Type = Rapid.ChangeTypes.Delete;
                                 }
                                 else {
                                     change.Type = Rapid.ChangeTypes.Edit;
                                 }
                             }
-                        });
-                        if (Rapid.Is.ReferenceType(property)) {
-                            self.RecursiveTrack(property);
-                        }
-                    })(k);
-                }
-            }
-            else if (Rapid.Is.Array(value)) {
-                for (var index in value) {
-                    var property = value[index];
-                    if (Rapid.Is.ReferenceType(property) && !Rapid.Is.Date(property)) {
-                        this.RecursiveTrack(property);
-                    }
-                    else {
-                        var self = this;
-                        Object.defineProperty(value, index, {
-                            get: function () { return property; },
-                            set: function (next) {
+                            else {
+                                change.Type = Rapid.ChangeTypes.Edit;
                             }
-                        });
+                        }
+                    });
+                    if (Rapid.Is.ReferenceType(property)) {
+                        self.RecursiveTrack(property);
                     }
-                }
+                })(k);
             }
         };
         Tracker.prototype.Remove = function (input) {
