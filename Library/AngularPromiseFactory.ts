@@ -1,10 +1,12 @@
-class AngularPromiseFactory implements IPromiseFactory {
-    $q: any;
-    constructor(q: any){
-        this.$q = q;
-    }
+namespace Rapid {
+    export class AngularPromiseFactory implements Interfaces.IPromiseFactory {
+        $q: any;
+        constructor(q: any) {
+            this.$q = q;
+        }
 
-    Defer() {
-        return this.$q.defer();
+        Defer() {
+            return this.$q.defer();
+        }
     }
 }

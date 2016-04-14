@@ -1,44 +1,48 @@
-class Context {
-    Tracker: ITracker;
-    PromiseFactory: IPromiseFactory;
-    Transporter: ITransporter;
-    XmlSerializer: ISerializer;
-    Serializer: ISerializer;
-    Router: IRouter;
-    MetadataProvider: IMetadataProvider;
+namespace Rapid {
+    export class Context {
+        Tracker: Interfaces.ITracker;
+        PromiseFactory: Interfaces.IPromiseFactory;
+        Transport: Interfaces.ITransport;
+        XmlSerializer: Interfaces.ISerializer;
+        Serializer: Interfaces.ISerializer;
+        Router: Interfaces.IRouter;
+        MetadataProvider: Interfaces.IMetadataProvider;
+        ValidatorFactory: Factory<Validator>
 
-    constructor() {
-        this.Tracker = DependencyResolver.Current.Get<ITracker>('Tracker');
-        this.PromiseFactory = DependencyResolver.Current.Get<IPromiseFactory>('PromiseFactory');
-        this.Transporter = DependencyResolver.Current.Get<ITransporter>('Transporter');
-        this.XmlSerializer = DependencyResolver.Current.Get<ISerializer>('XmlSerializer');
-        this.Serializer = DependencyResolver.Current.Get<ISerializer>('Serializer');
-        this.Router = DependencyResolver.Current.Get<IRouter>('Router');
-        this.MetadataProvider = DependencyResolver.Current.Get<IMetadataProvider>('MetadataProvider');
-        //Todo: self.ValidatorFactory = DependencyResolver.Current.GetFactory('Validator');
-    }   
-    
-    SaveChanges() {
+        constructor(Tracker: Interfaces.ITracker, 
+        PromiseFactory: Interfaces.IPromiseFactory) {
+            this.Tracker = DependencyResolver.Current.Get<Interfaces.ITracker>('Tracker');
+            this.PromiseFactory = DependencyResolver.Current.Get<Interfaces.IPromiseFactory>('PromiseFactory');
+            this.Transport = DependencyResolver.Current.Get<Interfaces.ITransport>('Transporter');
+            this.XmlSerializer = DependencyResolver.Current.Get<Interfaces.ISerializer>('XmlSerializer');
+            this.Serializer = DependencyResolver.Current.Get<Interfaces.ISerializer>('Serializer');
+            this.Router = DependencyResolver.Current.Get<Interfaces.IRouter>('Router');
+            this.MetadataProvider = DependencyResolver.Current.Get<Interfaces.IMetadataProvider>('MetadataProvider');
+            this.ValidatorFactory = DependencyResolver.Current.GetFactory<Validator>('Validator');
+        }
 
-    }
+        SaveChanges() {
 
-    Initialize () {
-        var task = this.PromiseFactory.Defer();
+        }
 
-        var promise = this.MetadataProvider.Process();
+        Initialize() : Interfaces.IPromise {
+            var task = this.PromiseFactory.Defer();
 
-        promise.Then(function (metadata) {
-            this.MetadataProvider.BuildContext(self);
-            task.Resolve();
-        }, function (error) {
-            task.Reject();
-            alert(error);
-        });
+            var promise = this.MetadataProvider.Process();
 
-        return task.Promise;
-    }
+            promise.Then(function(metadata) {
+                this.MetadataProvider.BuildContext(self);
+                task.Resolve();
+            }, function(error) {
+                task.Reject();
+                alert(error);
+            });
 
-    Dispose = function () {
+            return task.Promise;
+        }
 
+        Dispose = function() {
+
+        }
     }
 }

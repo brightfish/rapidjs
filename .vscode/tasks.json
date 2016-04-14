@@ -28,7 +28,7 @@
         {
             "taskName": "minifier",
             "args": [
-                "${workspaceRoot}/.tools/minifier/Minifier.exe", "${workspaceRoot}\\Build\\rapid.js", "-o", "${workspaceRoot}/Build/rapid.min.js"
+                "${workspaceRoot}/.tools/minifier/Minifier.exe", "${workspaceRoot}/Build/rapid.js", "-o", "${workspaceRoot}/Build/rapid.min.js"
             ],
             "showOutput": "always",
             "echoCommand": true,
@@ -37,7 +37,7 @@
         {
             "taskName": "test",
             "args": [
-                ""
+                "${workspaceRoot}/.tools/phantomjs/phantomjs.exe", "${workspaceRoot}/.tools/jasmine/run-jasmine2.js", "file:///${workspaceRoot}/.tools/jasmine/runner.html"
             ],
             "isTestCommand": true,
             "suppressTaskName": true,

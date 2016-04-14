@@ -1,3 +1,5 @@
-interface IPromiseFactory {
-    Defer(): ITask;
+namespace Rapid.Interfaces {
+    export interface IPromiseFactory {
+        Defer(): ITask;
+    }
 }

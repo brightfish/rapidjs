@@ -1,13 +1,11 @@
-var JsonSerializer = function () {
-    var self = this;
+namespace Rapid {
+    export class JsonSerializer {
+        public Serialize(input: Object): string {
+            return JSON.stringify(input);
+        }
 
-    self.Serialize = function (input) {
-        return JSON.stringify(input);
+        public Deserialize(input: string): Object {
+            return JSON.parse(input);
+        }
     }
-
-    self.Deserialize = function (input) {
-        return JSON.parse(input);
-    }
-
-    return self;
 }
